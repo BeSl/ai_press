@@ -1,0 +1,39 @@
+---
+const today = new Date().toLocaleDateString('ru-RU', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric'
+});
+
+import { getCollection } from 'astro:content';
+const all = await getCollection('articles');
+const issueNumber = String(all.length || 1).padStart(3, '0');
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<header class="masthead">
+  <div class="container">
+    <div class="masthead-top">
+      <span>Выпуск № {issueNumber}</span>
+      <span>{today}</span>
+      <span>Цена: бесплатно</span>
+    </div>
+
+    <h1 class="masthead-title">
+      <a href={`${base}/`}>AI<span class="accent">·</span>ПРЕССА</a>
+    </h1>
+    <p class="masthead-sub">Газета об искусственном интеллекте и автономных агентах</p>
+
+    <nav class="nav">
+      <ul class="nav-list">
+        <li><a href={`${base}/`}>Передовица</a></li>
+        <li><a href={`${base}/articles/chto-takoe-ai-agenty/`}>Основы</a></li>
+        <li><a href={`${base}/articles/frameworks-dlya-ai-agentov/`}>Фреймворки</a></li>
+        <li><a href={`${base}/articles/multiagentnye-sistemy/`}>Мультиагенты</a></li>
+        <li><a href={`${base}/articles/praktichnye-keysy/`}>Практика</a></li>
+        <li><a href={`${base}/about/`}>О газете</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>

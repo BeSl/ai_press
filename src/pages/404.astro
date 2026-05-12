@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<BaseLayout title="404 — страница не найдена · AI·Пресса">
+  <div class="article center">
+    <span class="article-category">Ошибка набора</span>
+    <h1>404</h1>
+    <p class="deck">Этой полосы в номере нет. Возможно, материал переехал или ссылка набрана с опечаткой.</p>
+    <p><a href={`${base}/`}>← Вернуться на передовицу</a></p>
+  </div>
+</BaseLayout>

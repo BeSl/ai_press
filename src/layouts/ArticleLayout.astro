@@ -1,0 +1,53 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  frontmatter: {
+    title: string;
+    description: string;
+    pubDate: Date;
+    author: string;
+    category: string;
+    tags: string[];
+    readingTime?: number;
+  };
+}
+
+const { frontmatter } = Astro.props;
+const date = new Date(frontmatter.pubDate).toLocaleDateString('ru-RU', {
+  day: 'numeric', month: 'long', year: 'numeric'
+});
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<BaseLayout title={`${frontmatter.title} — AI·Пресса`} description={frontmatter.description}>
+  <article class="article">
+    <div class="breadcrumb">
+      <a href={`${base}/`}>Главная</a> / Статья
+    </div>
+
+    <span class="article-category">{frontmatter.category}</span>
+    <h1>{frontmatter.title}</h1>
+    <p class="deck">{frontmatter.description}</p>
+
+    <div class="byline">
+      <span>{frontmatter.author}</span>
+      <span>{date}{frontmatter.readingTime ? ` · ${frontmatter.readingTime} мин чтения` : ''}</span>
+    </div>
+
+    <div class="prose">
+      <slot />
+    </div>
+
+    {frontmatter.tags && frontmatter.tags.length > 0 && (
+      <div class="tags">
+        {frontmatter.tags.map((tag) => <span class="tag">#{tag}</span>)}
+      </div>
+    )}
+
+    <hr class="rule-double" />
+
+    <p class="center muted small">
+      <a href={`${base}/`}>← Вернуться к передовице</a>
+    </p>
+  </article>
+</BaseLayout>
