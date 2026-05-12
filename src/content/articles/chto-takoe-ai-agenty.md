@@ -4,7 +4,7 @@ description: "Большие языковые модели научились н
 pubDate: 2026-05-04
 author: "Алексей Сорокин"
 category: "Основы"
-featured: true
+featured: false
 readingTime: 7
 tags: ["введение", "LLM", "агенты", "автономия"]
 ---
