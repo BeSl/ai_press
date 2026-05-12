@@ -10,6 +10,8 @@ interface Props {
     category: string;
     tags: string[];
     readingTime?: number;
+    sourceUrl?: string;
+    sourceName?: string;
   };
 }
 
@@ -34,9 +36,29 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       <span>{date}{frontmatter.readingTime ? ` · ${frontmatter.readingTime} мин чтения` : ''}</span>
     </div>
 
+    {frontmatter.sourceUrl && (
+      <aside class="source-badge">
+        <span class="source-label">Источник</span>
+        <a href={frontmatter.sourceUrl} rel="noopener noreferrer" target="_blank">
+          {frontmatter.sourceName || frontmatter.sourceUrl} — читать оригинал
+        </a>
+      </aside>
+    )}
+
     <div class="prose">
       <slot />
     </div>
+
+    {frontmatter.sourceUrl && (
+      <p class="source-footer">
+        <strong>Источник:</strong>{' '}
+        <a href={frontmatter.sourceUrl} rel="noopener noreferrer" target="_blank">
+          {frontmatter.sourceName || frontmatter.sourceUrl}
+        </a>
+        <br />
+        <span class="muted small">Автор анализа: {frontmatter.author}.</span>
+      </p>
+    )}
 
     {frontmatter.tags && frontmatter.tags.length > 0 && (
       <div class="tags">
