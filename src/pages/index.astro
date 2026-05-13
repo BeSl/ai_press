@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import LikeButton from '../components/LikeButton.astro';
 import { getCollection } from 'astro:content';
 
 const all = (await getCollection('articles'))
@@ -48,6 +49,7 @@ function shortHost(url?: string) {
                 Источник: <a href={a.data.sourceUrl} rel="noopener noreferrer" target="_blank">{a.data.sourceName || shortHost(a.data.sourceUrl)}</a>
               </span>
             )}
+            <LikeButton slug={a.slug} size="sm" />
             <a class="read-more" href={href(a.slug)}>Читать →</a>
           </span>
         </div>
@@ -57,7 +59,4 @@ function shortHost(url?: string) {
 
   {all.length === 0 && (
     <p class="muted center" style="padding: 2rem 0;">
-      Лента пока пуста. Запустите скилл <code>ai-press-publisher</code> для первого выпуска.
-    </p>
-  )}
-</BaseLayout>
+      Лента пока пуста. Запустите �

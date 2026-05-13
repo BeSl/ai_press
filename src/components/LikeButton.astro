@@ -1,0 +1,113 @@
+---
+import { API_URL, STATS_ENABLED } from '../config';
+
+interface Props {
+  slug: string;
+  size?: 'sm' | 'md';
+}
+const { slug, size = 'sm' } = Astro.props;
+---
+{STATS_ENABLED && (
+  <button
+    class={`like-btn like-btn--${size}`}
+    data-slug={slug}
+    type="button"
+    aria-label="В избранное"
+  >
+    <span class="like-heart" aria-hidden="true">♥</span>
+    <span class="like-count" data-count>—</span>
+  </button>
+)}
+
+{STATS_ENABLED && (
+  <script is:inline define:vars={{ API_URL }}>
+    (function () {
+      if (window.__aipLikesInit) return;
+      window.__aipLikesInit = true;
+
+      const FP_KEY = 'aip:fp';
+      const LIKED_KEY = (slug) => 'aip:liked:' + slug;
+      const fmt = (n) => (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : String(n));
+
+      function getFp() {
+        let fp = localStorage.getItem(FP_KEY);
+        if (!fp) {
+          fp = (crypto?.randomUUID?.() || Math.random().toString(36).slice(2));
+          localStorage.setItem(FP_KEY, fp);
+        }
+        return fp;
+      }
+
+      async function loadStats(slugs) {
+        if (!slugs.length) return {};
+        try {
+          const res = await fetch(API_URL + '/stats?slugs=' + encodeURIComponent(slugs.join(',')));
+          if (!res.ok) return {};
+          return await res.json();
+        } catch { return {}; }
+      }
+
+      async function toggle(slug, willLike) {
+        try {
+          const res = await fetch(API_URL + '/like', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ slug, action: willLike ? 'add' : 'remove' }),
+          });
+          if (!res.ok) return null;
+          return await res.json();
+        } catch { return null; }
+      }
+
+      function paint(btn, count, liked) {
+        const c = btn.querySelector('[data-count]');
+        if (c) c.textContent = fmt(count);
+        btn.classList.toggle('is-liked', !!liked);
+        btn.disabled = false;
+      }
+
+      async function init() {
+        getFp();
+        const buttons = document.querySelectorAll('.like-btn[data-slug]');
+        const slugs = Array.from(new Set(Array.from(buttons).map(b => b.dataset.slug)));
+        const stats = await loadStats(slugs);
+
+        buttons.forEach((btn) => {
+          const slug = btn.dataset.slug;
+          const liked = localStorage.getItem(LIKED_KEY(slug)) === '1';
+          const count = stats[slug]?.likes ?? 0;
+          paint(btn, count, liked);
+        });
+
+        document.body.addEventListener('click', async (e) => {
+          const btn = e.target.closest('.like-btn[data-slug]');
+          if (!btn || btn.disabled) return;
+          e.preventDefault();
+          const slug = btn.dataset.slug;
+          const wasLiked = btn.classList.contains('is-liked');
+          const willLike = !wasLiked;
+          btn.disabled = true;
+          // Оптимистичное UI-обновление
+          const cEl = btn.querySelector('[data-count]');
+          const current = parseInt((cEl?.textContent || '0').replace('K', '000'), 10) || 0;
+          paint(btn, Math.max(0, current + (willLike ? 1 : -1)), willLike);
+          if (willLike) localStorage.setItem(LIKED_KEY(slug), '1');
+          else localStorage.removeItem(LIKED_KEY(slug));
+
+          const res = await toggle(slug, willLike);
+          if (res && typeof res.likes === 'number') {
+            paint(btn, res.likes, willLike);
+          } else {
+            // Откат при ошибке
+            paint(btn, current, wasLiked);
+            if (wasLiked) localStorage.setItem(LIKED_KEY(slug), '1');
+            else localStorage.removeItem(LIKED_KEY(slug));
+          }
+        });
+      }
+
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+      else init();
+    })();
+  </script>
+)}
