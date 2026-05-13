@@ -1,79 +1,63 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ArticleCard from '../components/ArticleCard.astro';
 import { getCollection } from 'astro:content';
 
 const all = (await getCollection('articles'))
   .sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf());
 
-const featured = all.find((a) => a.data.featured) ?? all[0];
-const rest = all.filter((a) => a.slug !== featured.slug);
-
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const href = (slug: string) => `${base}/articles/${slug}/`;
 
-const featuredDate = new Date(featured.data.pubDate).toLocaleDateString('ru-RU', {
-  day: 'numeric', month: 'long', year: 'numeric'
-});
+function fmtDate(d: Date) {
+  return new Date(d).toLocaleDateString('ru-RU', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  });
+}
+
+function shortHost(url?: string) {
+  if (!url) return '';
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch { return url; }
+}
 ---
-<BaseLayout title="AI·Пресса — газета об искусственном интеллекте и автономных агентах">
+<BaseLayout title="AI·Пресса — лента новостей об ИИ и автономных агентах">
 
-  <!-- Передовица -->
-  <section class="lead">
-    <div class="lead-main">
-      <span class="kicker">Передовица</span>
-      <h2><a href={href(featured.slug)}>{featured.data.title}</a></h2>
-      <p class="lead-deck">{featured.data.description}</p>
-      <p class="lead-meta">{featured.data.author} · {featuredDate} · {featured.data.category}</p>
-    </div>
-    <aside class="lead-side">
-      <h3>В этом выпуске</h3>
-      <ul>
-        {rest.map((a) => (
-          <li>
-            <a href={href(a.slug)}>{a.data.title}</a>
-          </li>
-        ))}
-      </ul>
-    </aside>
-  </section>
+  <h2 class="section-title">Лента</h2>
 
-  <!-- Все материалы -->
-  <h2 class="section-title">Все материалы</h2>
-  <section class="grid">
-    {all.map((a) => (
-      <ArticleCard
-        href={href(a.slug)}
-        title={a.data.title}
-        category={a.data.category}
-        excerpt={a.data.description}
-        date={a.data.pubDate}
-        author={a.data.author}
-      />
+  <section class="feed">
+    {all.map((a, i) => (
+      <article class={`feed-item${(i === 0 || a.data.featured) ? ' is-featured' : ''}`}>
+        <div class="meta-line">
+          <span class="cat">{a.data.category}</span>
+          <span>·</span>
+          <span>{fmtDate(a.data.pubDate)}</span>
+          {a.data.readingTime && (<><span>·</span><span>{a.data.readingTime} мин</span></>)}
+        </div>
+
+        <h2><a href={href(a.slug)}>{a.data.title}</a></h2>
+        <p class="deck">{a.data.description}</p>
+
+        <div class="footer-line">
+          <span class="byline-author">
+            Анализ провёл&nbsp;<strong>{a.data.author}</strong>
+          </span>
+          <span class="footer-line-right" style="display:inline-flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+            {a.data.sourceUrl && (
+              <span class="source-pill">
+                Источник: <a href={a.data.sourceUrl} rel="noopener noreferrer" target="_blank">{a.data.sourceName || shortHost(a.data.sourceUrl)}</a>
+              </span>
+            )}
+            <a class="read-more" href={href(a.slug)}>Читать →</a>
+          </span>
+        </div>
+      </article>
     ))}
   </section>
 
-  <!-- Манифест -->
-  <h2 class="section-title">Манифест редакции</h2>
-  <div style="columns: 2; column-gap: 2rem; column-rule: 1px solid var(--rule); padding-bottom: 2rem;">
-    <p>
-      <span style="font-family: var(--font-display); font-size: 3.4rem; float: left; line-height: 0.85; padding: 0.3rem 0.5rem 0 0; color: var(--red);">М</span>
-      ы делаем газету об искусственном интеллекте и автономных агентах
-      для тех, кто хочет понимать, что происходит в индустрии,
-      без шумихи и без снисходительного «всё пропало».
+  {all.length === 0 && (
+    <p class="muted center" style="padding: 2rem 0;">
+      Лента пока пуста. Запустите скилл <code>ai-press-publisher</code> для первого выпуска.
     </p>
-    <p>
-      Каждый материал на этих страницах писался с одной мыслью:
-      читатель — взрослый человек, у которого мало времени,
-      но много вопросов. Мы стараемся отвечать конкретно,
-      ссылаться на практику и не прятаться за общими словами.
-    </p>
-    <p>
-      Если вы строите агентов сами — здесь вы найдёте обзоры
-      инструментов и разбор ошибок. Если вы выбираете решения
-      для бизнеса — кейсы и трезвые оценки эффекта.
-      Если вам просто интересно, куда движется мир —
-      читайте раздел «Будущее».
-    </p>
-  </div>
+  )}
 </BaseLayout>
