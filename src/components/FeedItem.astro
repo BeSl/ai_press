@@ -1,0 +1,55 @@
+---
+import { resolveSource } from '../lib/source';
+
+interface Props {
+  slug: string;
+  title: string;
+  description: string;
+  pubDate: Date;
+  author: string;
+  category: string;
+  readingTime?: number;
+  sourceUrl?: string;
+  sourceName?: string;
+  featured?: boolean;
+  body?: string;
+  base?: string;
+}
+const {
+  slug, title, description, pubDate, author, category,
+  readingTime, sourceUrl, sourceName, featured = false, body, base = '',
+} = Astro.props;
+
+const dateStr = new Date(pubDate).toLocaleDateString('ru-RU', {
+  day: 'numeric', month: 'long', year: 'numeric',
+});
+
+const source = resolveSource({ sourceUrl, sourceName }, body);
+const href = `${base}/articles/${slug}/`;
+---
+<article class={`feed-item${featured ? ' is-featured' : ''}`}>
+  <div class="meta-line">
+    <span class="cat">{category}</span>
+    <span>·</span>
+    <span>{dateStr}</span>
+    {readingTime && (<><span>·</span><span>{readingTime} мин</span></>)}
+  </div>
+
+  <h2><a href={href}>{title}</a></h2>
+  <p class="deck">{description}</p>
+
+  <div class="footer-line">
+    <span class="byline-author">
+      Анализ провёл&nbsp;<strong>{author}</strong>
+    </span>
+    <span class="footer-line-right">
+      {source && (
+        <span class="source-pill">
+          Источник:{' '}
+          <a href={source.url} rel="noopener noreferrer" target="_blank">{source.name}</a>
+        </span>
+      )}
+      <a class="read-more" href={href}>Читать →</a>
+    </span>
+  </div>
+</article>

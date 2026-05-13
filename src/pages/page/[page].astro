@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FeedItem from '../../components/FeedItem.astro';
+import Pagination from '../../components/Pagination.astro';
+import { getCollection } from 'astro:content';
+
+const PAGE_SIZE = 15;
+
+export async function getStaticPaths() {
+  const all = (await getCollection('articles'))
+    .sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf());
+  const totalPages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
+  const paths = [];
+  for (let p = 2; p <= totalPages; p++) {
+    paths.push({
+      params: { page: String(p) },
+      props: {
+        items: all.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE),
+        current: p,
+        total: totalPages,
+        all_count: all.length,
+      },
+    });
+  }
+  return paths;
+}
+
+const { items, current, total, all_count } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const url = {
+  prev: current === 2 ? `${base}/` : `${base}/page/${current - 1}/`,
+  next: current < total ? `${base}/page/${current + 1}/` : undefined,
+};
+---
+<BaseLayout title={`Лента — стр. ${current} — AI·Пресса`}>
+  <h2 class="section-title">
+    Лента <span class="section-meta">стр. {current} из {total} · всего {all_count}</span>
+  </h2>
+
+  <section class="feed">
+    {items.map((a) => (
+      <FeedItem
+        slug={a.slug}
+        title={a.data.title}
+        description={a.data.description}
+        pubDate={a.data.pubDate}
+        author={a.data.author}
+        category={a.data.category}
+        readingTime={a.data.readingTime}
+        sourceUrl={a.data.sourceUrl}
+        sourceName={a.data.sourceName}
+        body={a.body}
+        base={base}
+      />
+    ))}
+  </section>
+
+  <Pagination url={url} current={current} last={total} />
+</BaseLayout>

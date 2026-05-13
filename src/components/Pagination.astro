@@ -1,0 +1,15 @@
+---
+interface Props {
+  url: { prev?: string; next?: string };
+  current: number;
+  last: number;
+}
+const { url, current, last } = Astro.props;
+---
+{(url.prev || url.next) && (
+  <nav class="pager" aria-label="Постраничная навигация">
+    {url.prev ? <a class="pager-btn" href={url.prev}>← Новее</a> : <span class="pager-btn pager-btn--off">← Новее</span>}
+    <span class="pager-current">Стр. {current} из {last}</span>
+    {url.next ? <a class="pager-btn" href={url.next}>Старее →</a> : <span class="pager-btn pager-btn--off">Старее →</span>}
+  </nav>
+)}

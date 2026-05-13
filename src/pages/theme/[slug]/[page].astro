@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import FeedItem from '../../../components/FeedItem.astro';
+import Pagination from '../../../components/Pagination.astro';
+import { getCollection } from 'astro:content';
+import { THEMES, isUnclassified } from '../../../lib/themes';
+
+const PAGE_SIZE = 15;
+
+export async function getStaticPaths() {
+  const all = (await getCollection('articles'))
+    .sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf());
+
+  const paths = [];
+  for (const t of THEMES) {
+    const cats = new Set(t.categories);
+    const filtered = all.filter((a) => cats.has(a.data.category));
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    for (let p = 1; p <= totalPages; p++) {
+      paths.push({
+        params: { slug: t.slug, page: String(p) },
+        props: {
+          theme: t,
+          items: filtered.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE),
+          current: p,
+          total: totalPages,
+          all_count: filtered.length,
+        },
+      });
+    }
+  }
+
+  // отдельная "Прочее" — категории, не попавшие ни в одну тему
+  const other = all.filter((a) => isUnclassified(a.data.category));
+  if (other.length) {
+    const otherPages = Math.max(1, Math.ceil(other.length / PAGE_SIZE));
+    for (let p = 1; p <= otherPages; p++) {
+      paths.push({
+        params: { slug: 'other', page: String(p) },
+        props: {
+          theme: { slug: 'other', label: 'Прочее', description: 'Материалы, не попавшие в основные разделы.', categories: [] },
+          items: other.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE),
+          current: p,
+          total: otherPages,
+          all_count: other.length,
+        },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { theme, items, current, total, all_count } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const themeBase = `${base}/theme/${theme.slug}`;
+const url = {
+  prev: current > 1 ? `${themeBase}/${current - 1}/` : undefined,
+  next: current < total ? `${themeBase}/${current + 1}/` : undefined,
+};
+---
+<BaseLayout title={`${theme.label} — AI·Пресса`} description={theme.description}>
+  <h2 class="section-title">
+    {theme.label} <span class="section-meta">всего {all_count}{total > 1 ? ` · стр. ${current} из ${total}` : ''}</span>
+  </h2>
+  <p class="theme-desc">{theme.description}</p>
+
+  {items.length === 0 ? (
+    <p class="muted center" style="padding: 2rem 0;">В разделе пока нет материалов.</p>
+  ) : (
+    <section class="feed">
+      {items.map((a) => (
+        <FeedItem
+          slug={a.slug}
+          title={a.data.title}
+          description={a.data.description}
+          pubDate={a.data.pubDate}
+          author={a.data.author}
+          category={a.data.category}
+          readingTime={a.data.readingTime}
+          sourceUrl={a.data.sourceUrl}
+          sourceName={a.data.sourceName}
+          body={a.body}
+          base={base}
+        />
+      ))}
+    </section>
+  )}
+
+  <Pagination url={url} current={current} last={total} />
+</BaseLayout>
