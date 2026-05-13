@@ -1,6 +1,5 @@
 ---
 import BaseLayout from './BaseLayout.astro';
-import LikeButton from '../components/LikeButton.astro';
 
 interface Props {
   frontmatter: {
@@ -14,10 +13,9 @@ interface Props {
     sourceUrl?: string;
     sourceName?: string;
   };
-  slug?: string;
 }
 
-const { frontmatter, slug = '' } = Astro.props;
+const { frontmatter } = Astro.props;
 const date = new Date(frontmatter.pubDate).toLocaleDateString('ru-RU', {
   day: 'numeric', month: 'long', year: 'numeric'
 });
@@ -35,10 +33,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
     <div class="byline">
       <span>Анализ провёл&nbsp;<strong>{frontmatter.author}</strong></span>
-      <span class="byline-tools">
-        <LikeButton slug={slug} size="md" />
-        <span>{date}{frontmatter.readingTime ? ` · ${frontmatter.readingTime} мин чтения` : ''}</span>
-      </span>
+      <span>{date}{frontmatter.readingTime ? ` · ${frontmatter.readingTime} мин чтения` : ''}</span>
     </div>
 
     {frontmatter.sourceUrl && (
@@ -71,4 +66,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       </div>
     )}
 
- 
+    <hr class="rule-double" />
+
+    <p class="center muted small">
+      <a href={`${base}/`}>← Вернуться к передовице</a>
+    </p>
+  </article>
+</BaseLayout>
