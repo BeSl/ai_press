@@ -4,9 +4,8 @@ import FeedItem from '../../components/FeedItem.astro';
 import Pagination from '../../components/Pagination.astro';
 import { getCollection } from 'astro:content';
 
-const PAGE_SIZE = 15;
-
 export async function getStaticPaths() {
+  const PAGE_SIZE = 15;
   const all = (await getCollection('articles'))
     .sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf());
   const totalPages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
