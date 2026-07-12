@@ -4,7 +4,7 @@ description: "Суббота, 11 июля 2026: OpenAI выпустил семе
 pubDate: 2026-07-11
 author: "Редакция AI Press"
 category: "Дайджест"
-featured: true
+featured: false
 readingTime: 7
 tags: ["дайджест", "OpenAI", "Anthropic", "Google", "Broadcom", "GPT-5.6", "ChatGPT Work", "Claude Cowork", "Fable 5", "Together AI", "NVIDIA", "July 2026"]
 sourceUrl: "https://llm-stats.com/llm-updates"
